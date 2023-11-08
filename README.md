@@ -1,6 +1,6 @@
-## Icons
-
 # Rich presence for LTspice
+
+![](readme/sample_status.png)
 
 ## Install and run
 
