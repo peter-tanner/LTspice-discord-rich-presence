@@ -6,17 +6,26 @@
 
 Install dependencies:
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+```powershell
+.\install.ps1
 ```
 
 Run with:
 
-```bash
-python .\ltspice-discord.py
+```powershell
+.\run.ps1
 ```
+
+Create a shortcut in `shell:startup` to start listening on startup:
+
+Target: `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Command [PATH]\ltspice-discord\run.ps1`\
+Start in: `[PATH]\ltspice-discord\`
+
+## How does it work
+
+This script extracts file type from the title of any LTspice application then uses it to update the status on Discord.
+
+The code should be short enough to audit if you are worried about data exfiltration, etc.
 
 ## Icons
 

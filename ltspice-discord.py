@@ -33,6 +33,14 @@ def handle_ltspice(title: str) -> None:
     global last_state
     filename = title.replace("LTspice XVII - ", "")
     file, ext = os.path.splitext(filename)
+
+    # The window title is of the format "LTspice XVII - [filename.extension]"
+    # if the view is maximized
+    if ext and ext[-1] == "]":
+        ext = ext[:-1]
+        file = file[1:]
+        # filename = filename[1:-1]
+
     state = {}
     if ext in (".asc",):  # SCHEMATICS
         state = {
@@ -116,14 +124,17 @@ def main() -> None:
         foreground_hwnd = win32gui.GetForegroundWindow()
         pid = win32process.GetWindowThreadProcessId(foreground_hwnd)
         if pid[-1] >= 0:
-            active_process = psutil.Process(pid[-1])
-            if active_process.name() in WINDOW_HANDLERS.keys():
-                handler = WINDOW_HANDLERS[active_process.name()]
-                if handler(win32gui.GetWindowText(foreground_hwnd)):
-                    last_program = {
-                        "pid": active_process.pid,
-                        "path": active_process.name(),
-                    }
+            try:
+                active_process = psutil.Process(pid[-1])
+                if active_process.name() in WINDOW_HANDLERS.keys():
+                    handler = WINDOW_HANDLERS[active_process.name()]
+                    if handler(win32gui.GetWindowText(foreground_hwnd)):
+                        last_program = {
+                            "pid": active_process.pid,
+                            "path": active_process.name(),
+                        }
+            except psutil.NoSuchProcess:
+                pass
         if last_program["pid"] is not None and last_program[
             "pid"
         ] not in find_active_processes(last_program["path"]):
