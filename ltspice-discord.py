@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List
 import win32gui
@@ -11,6 +12,8 @@ data = None
 
 rpc.connect()
 
+logging.basicConfig(level=logging.INFO)
+
 
 def find_active_processes(name: str) -> List[int]:
     processes = []
@@ -23,7 +26,8 @@ def find_active_processes(name: str) -> List[int]:
     return processes
 
 
-LTSPICE_NAME = "LTSPICE.exe"
+LTSPICE_NAME_0 = "LTSPICE.exe"
+LTSPICE_NAME_1 = "XVIIx64.exe"
 
 last_state = {}
 last_program = {"pid": None, "path": None}
@@ -101,8 +105,8 @@ def handle_ltspice(title: str) -> None:
         }
 
     if state != last_state:
-        print("UPDATED!")
-        print(filename, file, ext)
+        logging.info(f"update rpc! {state['details']}")
+        logging.info(f"{filename=} {file=} {ext=}")
         rpc.update(
             **state,
             start=int(time.time()),
@@ -117,16 +121,18 @@ def handle_ltspice(title: str) -> None:
 def main() -> None:
     global last_program
     WINDOW_HANDLERS = {
-        LTSPICE_NAME: handle_ltspice,
+        LTSPICE_NAME_0: handle_ltspice,
+        LTSPICE_NAME_1: handle_ltspice,
     }
     while True:
-        time.sleep(3)
         foreground_hwnd = win32gui.GetForegroundWindow()
         pid = win32process.GetWindowThreadProcessId(foreground_hwnd)
         if pid[-1] >= 0:
             try:
                 active_process = psutil.Process(pid[-1])
                 if active_process.name() in WINDOW_HANDLERS.keys():
+                    logging.info(pid[-1])
+                    logging.info(active_process.name())
                     handler = WINDOW_HANDLERS[active_process.name()]
                     if handler(win32gui.GetWindowText(foreground_hwnd)):
                         last_program = {
@@ -139,8 +145,9 @@ def main() -> None:
             "pid"
         ] not in find_active_processes(last_program["path"]):
             last_program = {"pid": None, "path": None}
-            print("Clear RPC - program closed")
+            logging.info("Clear RPC - program closed")
             rpc.clear()
+        time.sleep(3)
 
 
 if __name__ == "__main__":
